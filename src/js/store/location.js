@@ -1,4 +1,4 @@
-import api from "../services/apiService";
+import api from '../services/apiService';
 
 class Location {
     constructor(api) {
@@ -10,7 +10,7 @@ class Location {
     async init() {
         const response = await Promise.all([
             this.api.cities(),
-            this.api.countries()
+            this.api.countries(),
         ]);
         const [counties, cities] = response;
         this.countries = counties;

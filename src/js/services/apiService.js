@@ -1,11 +1,12 @@
-import axios from "axios";
-import config from "../config/apiConfig";
+import axios from 'axios';
+import config from '../config/apiConfig';
 
 class Api {
     constructor(config) {
         this.url = config.url;
     }
-    async countries(){
+
+    async countries() {
         try {
             const response = await axios.get(`${this.url}/countries`);
             return response.data;
@@ -13,8 +14,9 @@ class Api {
             console.log(e);
             return Promise.reject(e);
         }
-    };
-    async cities(){
+    }
+
+    async cities() {
         try {
             const response = await axios.get(`${this.url}/cities`);
             return response.data;
@@ -22,8 +24,10 @@ class Api {
             console.log(e);
             return Promise.reject(e);
         }
-    };
-    async prices(params){};
+    }
+
+    async prices(params) {
+    }
 }
 
 const api = new Api(config);

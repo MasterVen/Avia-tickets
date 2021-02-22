@@ -1,88 +1,95 @@
 const path = require('path');
-const autoprefixer = require('autoprefixer');
-const precss = require('precss');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
+const webpack = require('webpack');
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+const HTMLWebpackPlugin = require('html-webpack-plugin');
+const CopyPlugin = require('copy-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+
+const isProd = process.env.NODE_ENV === 'production';
+const isDev = !isProd;
+
+const filename = ext => (isDev ? `bundle.${ext}` : `bundle.[hash].${ext}`);
+
+const jsLoaders = () => {
+    const loaders = ['babel-loader'];
+
+    if (isDev) {
+        loaders.push('eslint-loader');
+    }
+
+    return loaders;
+};
+
+console.log('IS Prod', isProd);
+console.log('IS Dev', isDev);
 
 module.exports = {
-  // Итак,  чтобы вебпак начал свою работу, нужно указать главный (основной) файл, который будет включать в себя все другие необходимые файлы (модули).
-  entry: {
-    polyfill: 'babel-polyfill',
-    app: './js/app.js',
-  },
-  // Также webpack рекомендует явно указывать, в какой директории находятся исходные файлы проекта (ресурсы). Для этого следует использовать свойство context:
-  context: path.resolve(__dirname, 'src'),
-  devServer: {
-    publicPath: '/',
-    port: 9000,
-    contentBase: path.join(process.cwd(), 'dist'),
-    host: 'localhost',
-    historyApiFallback: true,
-    noInfo: false,
-    stats: 'minimal',
-    hot: true,
-  },
-  module: {
-    // Для того, чтобы трансформировать файл, используются специальные утилиты - загрузчики (loaders).
-    //Для любых настроек модуля вебпак используется поле module.
-    //Массив rules  внутри объекта module определяет список правил для загрузчиков.
-    rules: [
-      {
-        use: {
-          loader: 'babel-loader',
-          options: {
-            presets: ['@babel/preset-env'],
-          },
+    context: path.resolve(__dirname, 'src'),
+    mode: 'development',
+    entry: ['@babel/polyfill', './js/app.js'],
+    output: {
+        filename: filename('js'),
+        path: path.resolve(__dirname, 'dist'),
+    },
+    resolve: {
+        extensions: ['.js'],
+        alias: {
+            '@': path.resolve(__dirname, 'src'),
+            '@core': path.resolve(__dirname, 'src/core'),
         },
-        test: /\.js$/,
-      },
-      {
-        test: /\.css$/,
-        use: [
-          {
-            loader: 'style-loader',
-          },
-          {
-            loader: 'css-loader',
-
-            options: {
-              importLoaders: 1,
-              sourceMap: true,
+    },
+    devtool: isDev && 'source-map',
+    devServer: {
+        port: 3000,
+        hot: isDev,
+    },
+    plugins: [
+        new CleanWebpackPlugin(),
+        new HTMLWebpackPlugin({
+            template: 'index.html',
+            minify: {
+                removeComments: isProd,
+                collapseWhitespace: isProd,
             },
-          },
-          {
-            loader: 'postcss-loader',
-            options: {
-              plugins: () => [precss, autoprefixer],
-            },
-          },
-        ],
-      },
-      {
-        test: /\.(png|jpe?g|gif)$/,
-        use: [
-          {
-            loader: 'file-loader',
-            options: {
-              name: '[path][name].[ext]',
-            },
-          },
-        ],
-      },
+        }),
+        new CopyPlugin({
+            patterns: [
+                {
+                    from: path.resolve(__dirname, 'src/favicon.ico'),
+                    to: path.resolve(__dirname, 'dist'),
+                },
+            ],
+        }),
+        new MiniCssExtractPlugin({
+            filename: filename('css'),
+        }),
+        new webpack.DefinePlugin({
+            'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
+        }),
     ],
-  },
-  // Вебпак плагины используются для настройки процесса сборки.
-  //Например, плагин для минификации кода (во время сборки код подвергается очистке и минификации).
-  //Или плагин для сборки html страницы и css кода (скрипты вставляются в html, куски css собираются в один файл).
-  plugins: [
-    new HtmlWebpackPlugin({
-      template: 'index.html',
-    }),
-  ],
-  // Кроме entry, мы можем указать поле, куда (в какой файл) собирать конечный результат. Это свойство задаётся с помощью поля output.
-  //По умолчанию, весь результирующий код собирается в папку dist.
-  output: {
-    path: path.resolve(__dirname, 'dist'),
-    filename: '[name].[fullhash].js',
-  },
-  mode: 'development',
+    module: {
+        rules: [
+            {
+                test: /\.s[ac]ss$/i,
+                use: [
+                    {
+                        loader: MiniCssExtractPlugin.loader,
+                        options: {
+                            hmr: isDev,
+                            reloadAll: true,
+                        },
+                    },
+                    // Translates CSS into CommonJS
+                    'css-loader',
+                    // Compiles Sass to CSS
+                    'sass-loader',
+                ],
+            },
+            {
+                test: /\.js$/,
+                exclude: /node_modules/,
+                use: jsLoaders(),
+            },
+        ],
+    },
 };
