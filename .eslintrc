@@ -15,7 +15,8 @@
     "space-before-function-paren": "off",
     "no-debugger": "off",
     "arrow-parens": "off",
-    "linebreak-style": "off"
+    "linebreak-style": "off",
+    "semi": "off"
   },
   "extends": ["eslint:recommended", "google"]
 }
