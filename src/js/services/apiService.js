@@ -41,7 +41,6 @@ class Api {
             const response = await axios.get(`${this.url}/prices/cheap`, {
                 params,
             });
-            console.log(params);
             return response.data;
         } catch (e) {
             console.log(e);

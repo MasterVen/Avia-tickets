@@ -2,6 +2,7 @@ import '../scss/style.scss';
 import './plugins';
 import location from './store/location';
 import formUI from '@/js/views/form';
+import ticketsUI from '@/js/views/tickets';
 import currencyUI from '@/js/views/currency';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -21,8 +22,6 @@ document.addEventListener('DOMContentLoaded', () => {
         formUI.setAutocomleteData(location.shortCitiesList)
     }
 
-    console.log(location);
-
     async function onFormSubmit() {
         // собрать даные из формы
         const origin = location.getCityCodeByKey(formUI.originValue);
@@ -39,5 +38,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 return_date,
                 currency,
         })
+        ticketsUI.renderTickets(location.lastSearch);
     }
 })
